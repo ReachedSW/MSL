@@ -25,17 +25,10 @@ namespace msl
 //! @brief string_split split a string into a vector by providing a single delim character
 template <class T = std::vector<std::string>> T string_split(const std::string & str, char tok = ' ')
 {
-	T vec;
-	std::size_t prev = 0;
-	auto cur = str.find(tok);
-	while (cur != std::string::npos)
-	{
-		vec.emplace_back(str.substr(prev, cur - prev));
-		prev = cur + 1;
-		cur = str.find(tok, prev);
-	}
-	vec.emplace_back(str.substr(prev, cur - prev));
-	return vec;
+    T vec;
+    std::istringstream iss(str);
+    std::copy(std::istream_iterator<std::string>(iss), std::istream_iterator<std::string>(), std::back_inserter(vec));
+    return vec;
 }
 
 //! @brief string_split split a string into a vector by providing the delim string
@@ -73,14 +66,15 @@ template <class T = std::vector<std::string>> T string_split_any(const std::stri
 //! @brief string_join join a vector into a string by uniting them with tok char
 template <class T = std::vector<std::string>> std::string string_join(const T & vec, const char tok = ' ')
 {
-	std::string str;
-	for (auto & elem : vec)
-	{
-		if (!str.empty())
-			str += tok;
-		str += elem;
-	}
-	return str;
+    std::string str;
+    str.reserve(vec.size() * (vec.front().size() + 1));  // reserve space in the string to avoid reallocation
+    for (auto it = vec.begin(); it != vec.end(); ++it)
+    {
+        str += *it;
+        if (std::next(it) != vec.end())
+            str += tok;
+    }
+    return str;
 }
 
 //! @brief string_join join a vector into a string by uniting them with tok string

@@ -267,18 +267,19 @@ public:
 	}
 
 	//! @brief read the next line from the current position as string
-	std::optional<std::string> getline(char delim = '\n') const
+	std::optional<std::string_view> getline(char delim = '\n') const
 	{
 		std::string ret;
 		int buf;
 		while ((buf = std::fgetc(m_ptr_)) != EOF)
 		{
 			if (buf == delim) // if newline, return the current line
-				return ret;
+				return std::string_view(ret.data(), ret.size());
 			ret += static_cast<char>(buf);
 		}
-		return (ret.empty()) ? std::nullopt : std::optional<std::string>{ret};
+		return ret.empty() ? std::nullopt : std::optional<std::string_view>(std::string_view(ret.data(), ret.size()));
 	}
+
 
 	//! @brief tell the file
 	long tell() const
@@ -293,12 +294,12 @@ public:
 	}
 
 	//! @brief read the file from the current position returning null-terminated string
-	std::string string_read(const std::size_t n = 0) const
+	std::string_view string_read(const std::size_t n = 0) const
 	{
 		auto vec = this->read(n);
-		if (!vec.empty() && vec[vec.size() - 1] != '\0') // append EOS at the end of vector
+		if (!vec.empty() && vec.back() != '\0') // append EOS at the end of vector
 			vec.emplace_back('\0');
-		return std::string(vec.begin(), vec.end()); // convert vector to string
+		return std::string_view(vec.data(), vec.size()); // convert vector to string_view
 	}
 
 	//! @brief read the file from the current position using a null-terminated string buffer

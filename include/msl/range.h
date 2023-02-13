@@ -96,35 +96,39 @@ private:
 	std::enable_if_t<std::is_floating_point_v<U>>
 	init(T min, T max, T diff)
 	{
-		if (min >= max)
+		if (min >= max || diff <= 0)
 			return;
-		if (diff <= 0)
-			return;
-		// 4x faster than emplace_back
-		m_vec_.resize(static_cast<std::size_t>((max - min) / diff));
-		for (auto & e : m_vec_)
+
+		std::size_t size = static_cast<std::size_t>((max - min) / diff);
+		m_vec_.resize(size);
+		T val = min;
+		for (std::size_t i = 0; i < size; ++i) // here a separate variable val is used to keep track of the current value that is being added to the vector, rather than modifying the min parameter directly.
 		{
-			e += min;
-			min += diff;
+			m_vec_[i] = val;
+			val += diff;
 		}
 	}
 
-	template<typename U=T>
-	std::enable_if_t<std::is_integral_v<U>>
-	init(T min, T max, T diff)
-	{
-		if (min >= max)
-			return;
-		if (diff <= 0)
-			return;
-		// 4x faster than emplace_back
-		m_vec_.resize(static_cast<std::size_t>((max - min) / diff) + ((max - min) % diff ? 1 : 0));
-		for (auto & e : m_vec_)
+
+		template<typename U=T>
+		std::enable_if_t<std::is_integral_v<U>>
+		init(T min, T max, T diff)
 		{
-			e += min;
-			min += diff;
+			if (min >= max || diff <= 0)
+				return;
+
+			std::size_t size = (max - min) / diff;
+			if ((max - min) % diff)
+				size++;
+			m_vec_.resize(size);
+
+			T val = min;
+			for (std::size_t i = 0; i < size; ++i)
+			{
+				m_vec_[i] = val;
+				val += diff;
+			}
 		}
-	}
 };
 
 using xcrange = xrange<char>;
